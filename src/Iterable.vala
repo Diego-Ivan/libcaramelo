@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
+[GenericAccessors]
 public interface Caramelo.Iterable<G> : Object {
     public abstract Iterator<G> iterator ();
 }

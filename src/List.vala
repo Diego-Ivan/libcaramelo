@@ -6,7 +6,7 @@
  */
 
 [GenericAccessors]
-public interface Caramelo.List<G> : Object, Collection<G> {
+public interface Caramelo.List<G> : Collection<G> {
     public abstract new G @get (int index);
     public abstract new void @set (int index, G data);
     public abstract int index_of (G data);

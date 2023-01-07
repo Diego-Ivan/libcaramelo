@@ -5,8 +5,14 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Collection<G>, Caramelo.Iterable<G>, Object {
-    public int size { get; private set; default = 0; }
+public sealed class Caramelo.SingleLinkedList<G> : Object, Caramelo.Iterable<G>, Caramelo.Collection<G>, Caramelo.List<G> {
+    public int size {
+        get {
+            return count_n_nodes ();
+        }
+        protected set {
+        }
+    }
     public bool empty {
         get {
             return head == null;
@@ -21,31 +27,29 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
     }
 
     public new G @get (int index)
-        requires (index < size)
         requires (index >= 0)
     {
-        weak Node<G> iter = head;
-        for (int i = 0; i < index; i++) {
-            iter = iter.next;
+        int position = 0;
+        for (weak Node<G> iter = head; iter != null; iter = iter.next) {
+            if (position == index) {
+                return iter.content;
+            }
         }
-
-        return iter.data;
+        return null;
     }
 
     public new void @set (int index, G data)
-        requires (index < size)
         requires (index >= 0)
     {
-        weak Node<G> iter = head;
-        for (int i = 0; i < index; i++) {
-            iter = iter.next;
+        int position = 0;
+        for (weak Node<G> iter = head; iter != null; iter = iter.next) {
+            if (position == index) {
+                iter.content = data;
+            }
         }
-
-        iter.data = data;
     }
 
     public void add (G data) {
-        size++;
         Node<G> new_node = new Node<G> (data);
         if (head == null) {
             head = (owned) new_node;
@@ -56,16 +60,9 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
     }
 
     public void insert (int index, G data)
-        requires (index < size)
         requires (index >= 0)
     {
-        if (index == size - 1) {
-            add (data);
-            return;
-        }
-
         Node<G> new_node = new Node<G> (data);
-        size++;
 
         if (index == 0) {
             new_node.next = (owned) head;
@@ -74,18 +71,18 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
         }
 
         weak Node<G> prev = head;
-        weak Node<G> iter = head.next;
-        for (int i = 0; i < index; i++) {
-            iter = iter.next;
+        int position = 0;
+        for (weak Node<G> iter = head.next; iter != null; iter = iter.next) {
+            if (position == index) {
+                new_node.next = (owned) prev.next;
+                prev.next = (owned) new_node;
+            }
         }
-
-        new_node.next = (owned) prev.next;
-        prev.next = (owned) new_node;
     }
 
     public bool contains (G data) {
         for (weak Node<G> iter = head; iter != null; iter = iter.next) {
-            if (equal_closure.equal_func (iter.data, data)) {
+            if (equal_closure.equal_func (iter.content, data)) {
                 return true;
             }
         }
@@ -95,7 +92,7 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
     public int index_of (G data) {
         int position = 0;
         for (weak Node<G> iter = head; iter != null; iter = iter.next) {
-            if (equal_closure.equal_func (iter.data, data)) {
+            if (equal_closure.equal_func (iter.content, data)) {
                 return position;
             }
             position++;
@@ -104,17 +101,15 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
     }
 
     public bool remove (G data) {
-        if (equal_closure.equal_func (head.data, data)) {
+        if (equal_closure.equal_func (head.content, data)) {
             head = (owned) head.next;
-            size--;
             return true;
         }
 
         weak Node<G> prev = head;
         for (weak Node<G> iter = head.next; iter != null; iter = iter.next) {
-            if (equal_closure.equal_func (iter.data, data)) {
+            if (equal_closure.equal_func (iter.content, data)) {
                 prev.next = (owned) iter.next;
-                size--;
                 return true;
             }
         }
@@ -124,29 +119,27 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
 
     public bool remove_at (int index)
         requires (index >= 0)
-        requires (index < size)
     {
         if (index == 0) {
             head = (owned) head.next;
-            size--;
             return true;
         }
 
-        weak Node<G> current = head.next;
-        for (int i = 1; i < index; i++) {
-            current = current.next;
+        int position = 0;
+        for (weak Node<G> iter = head.next; iter != null; iter = iter.next) {
+            if (index == position) {
+                iter.next = (owned) iter.next.next;
+                return true;
+            }
         }
 
-        current.next = (owned) current.next.next;
-        size--;
-        return true;
+        return false;
     }
 
     public List<G> slice (long start, long end)
         requires (!empty)
         requires (start < end)
         requires (start >= 0)
-        requires (end < size)
     {
         var sliced_list = new SingleLinkedList<G> (equal_closure.equal_func);
 
@@ -155,7 +148,7 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
             if (position < start) continue;
             if (position > end) break;
 
-            sliced_list.add (iter.data);
+            sliced_list.add (iter.content);
         }
 
         return sliced_list;
@@ -166,7 +159,7 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
             return null;
         }
 
-        return head.data;
+        return head.content;
     }
 
     public G last () {
@@ -179,11 +172,27 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
             iter = iter.next;
         }
 
-        return iter.data;
+        return iter.content;
+    }
+
+    public G[] to_array () {
+        G[] data_array = {};
+        for (weak Node<G> iter = head; iter != null; iter = iter.next) {
+            data_array += iter.content;
+        }
+        return data_array;
     }
 
     public void clear () {
         head = null;
+    }
+
+    private int count_n_nodes () {
+        int count = 0;
+        for (weak Node<G> iter = head; iter != null; iter = iter.next) {
+            count++;
+        }
+        return count;
     }
 
     public Caramelo.Iterator<G> iterator () {
@@ -191,11 +200,11 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
     }
 
     private class Iterator<G> : Object, Caramelo.Iterator<G> {
-        public unowned Node<G> iter { get; set; }
-        private unowned Node<G> prev;
+        public unowned Node<G> iter { get; private set; }
+        private unowned Node<G>? prev = null;
 
         public Iterator (Node<G> iter) {
-            Object (iter: iter);
+            this.iter = iter;
         }
 
         public bool has_next () {
@@ -203,7 +212,7 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
         }
 
         public new G @get () {
-            return prev.data;
+            return prev.content;
         }
 
         public bool next () {
@@ -220,11 +229,11 @@ public sealed class Caramelo.SingleLinkedList<G> : Caramelo.List<G>, Caramelo.Co
 
     [Compact]
     private class Node<G> {
-        public G data;
+        public G content;
         public Node<G>? next = null;
 
-        public Node (G data) {
-            this.data = data;
+        public Node (G content) {
+            this.content = content;
         }
 
         ~Node () {
