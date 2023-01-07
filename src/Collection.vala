@@ -14,8 +14,16 @@ public interface Caramelo.Collection<G> : Iterable<G> {
     public abstract bool contains (G data);
     public abstract void clear ();
     public abstract bool remove (G data);
-    public abstract bool remote_at (int index);
-    public abstract G[] to_array ();
+    public abstract bool remove_at (int index);
+
+    public virtual G[] to_array () {
+        G[] data_array = new G[size];
+        foreach (G data in this) {
+            data_array += data;
+        }
+
+        return data_array;
+    }
 
     public virtual void add_from_array (G[] data_array) {
         foreach (G data in data_array) {
