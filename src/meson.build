@@ -15,7 +15,7 @@ sources = files([
   'SingleLinkedList.vala',
 ])
 
-liblibcaramelo = library('libcaramelo-' + API_VERSION,
+libcaramelo = library('libcaramelo-' + API_VERSION,
   sources,
   vala_header: 'libcaramelo.h',
   vala_vapi: 'libcaramelo-' + API_VERSION + '.vapi',
@@ -33,21 +33,27 @@ liblibcaramelo = library('libcaramelo-' + API_VERSION,
   ]
 )
 
+caramelo_dep = declare_dependency (
+  link_with: libcaramelo,
+  dependencies: dependencies,
+  include_directories: [include_directories('.')],
+)
+
 if g_ir_compiler.found()
-  custom_target('liblibcaramelo-typelib',
+  custom_target('libcaramelo-typelib',
     command: [
       g_ir_compiler,
-      '--shared-library', 'liblibcaramelo-@0@.so'.format (API_VERSION),
+      '--shared-library', 'libcaramelo-@0@.so'.format (API_VERSION),
       '--output', '@OUTPUT@',
       meson.current_build_dir() / 'Caramelo-' + API_VERSION + '.gir'
     ],
     output: 'Caramelo-' + API_VERSION + '.typelib',
-    depends: liblibcaramelo,
+    depends: libcaramelo,
     install: true,
     install_dir: join_paths(get_option('libdir'), 'girepository-1.0'))
 endif
 
-pkgconfig.generate(liblibcaramelo,
+pkgconfig.generate(libcaramelo,
   subdirs: 'libcaramelo-' + API_VERSION,
   version: API_VERSION,
   name: 'libcaramelo',
