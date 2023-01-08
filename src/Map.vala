@@ -6,7 +6,7 @@
  */
 
 [GenericAccessors]
-public interface Caramelo.Map<K,V> : Object {
+public interface Caramelo.Map<K,V> : Object, Iterable<MapEntry<K,V>> {
     public Type key_type {
         get {
             return typeof(K);
@@ -21,11 +21,13 @@ public interface Caramelo.Map<K,V> : Object {
 
     public abstract new V @get (K key);
     public abstract new void @set (K key, V @value);
+    public abstract bool unset (K key);
     public abstract bool contains (K key);
     public abstract bool has_pair (K key, V @value);
+    public abstract MapIterator<K,V> map_iterator ();
+}
 
-    public abstract class MapEntry<K,V> : Object {
-        public K key { get; construct; }
-        public V @value { get; construct; }
-    }
+public abstract class Caramelo.MapEntry<K,V> : Object {
+    public virtual K key { get; }
+    public virtual V @value { get; set; }
 }

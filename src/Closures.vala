@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-protected class Caramelo.EqualFuncClosure<G> {
+internal class Caramelo.EqualFuncClosure<G> {
     private EqualFunc<G> _equal_func;
     public EqualFunc<G>? equal_func {
         get {
@@ -42,7 +42,7 @@ protected class Caramelo.EqualFuncClosure<G> {
     }
 }
 
-protected class Caramelo.HashFuncClosure<K> {
+internal class Caramelo.HashFuncClosure<K> {
     private HashFunc<K> _hash_func;
     public HashFunc<K>? hash_func {
         get {
