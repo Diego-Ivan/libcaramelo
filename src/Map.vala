@@ -21,7 +21,7 @@ public interface Caramelo.Map<K,V> : Object, Iterable<MapEntry<K,V>> {
 
     public abstract new V @get (K key);
     public abstract new void @set (K key, V @value);
-    public abstract bool unset (K key);
+    public abstract bool unset (K key, out V? @value = null);
     public abstract bool contains (K key);
     public abstract bool has_pair (K key, V @value);
     public abstract MapIterator<K,V> map_iterator ();

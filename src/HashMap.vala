@@ -54,7 +54,16 @@ public sealed class Caramelo.HashMap<K,V> : Object, Caramelo.Iterable<MapEntry<K
         }
     }
 
-    public bool unset (K key) {
+    public bool unset (K key, out V? @value = null) {
+        unowned Node<K,V> node = lookup_node (key);
+        if (node != null) {
+            value = (owned) node.value;
+            node_array[node.hash_key % node_array.length] = null;
+
+            n_nodes--;
+            return true;
+        }
+        value = null;
         return false;
     }
 
