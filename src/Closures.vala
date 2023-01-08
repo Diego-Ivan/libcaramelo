@@ -41,3 +41,33 @@ protected class Caramelo.EqualFuncClosure<G> {
         return a == b;
     }
 }
+
+protected class Caramelo.HashFuncClosure<K> {
+    private HashFunc<K> _hash_func;
+    public HashFunc<K>? hash_func {
+        get {
+            return _hash_func;
+        }
+        set {
+            if (value == null) {
+                _hash_func = get_default ();
+                return;
+            }
+            _hash_func = value;
+        }
+    }
+
+    private HashFunc<K> get_default () {
+        switch (typeof(K)) {
+            case Type.STRING:
+                return str_hash;
+
+            case Type.INT:
+            case Type.UINT:
+                return int_hash;
+
+            default:
+                return direct_hash;
+        }
+    }
+}

@@ -15,6 +15,7 @@ sources = files([
   'List.vala',
   'SingleLinkedList.vala',
   'LinkedList.vala',
+  'Map.vala',
 ])
 
 libcaramelo = library('libcaramelo-' + API_VERSION,
