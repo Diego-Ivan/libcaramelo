@@ -6,20 +6,20 @@
  */
 
 [GenericAccessors]
-public interface Caramelo.Collection<G> : Iterable<G> {
+public interface Caramelo.Collection<T> : Iterable<T> {
     public abstract int size { get; protected set; }
     public abstract bool empty { get; }
 
-    public abstract void add (G data);
-    public abstract bool contains (G data);
+    public abstract void add (T data);
+    public abstract bool contains (T data);
     public abstract void clear ();
-    public abstract bool remove (G data);
+    public abstract bool remove (T data);
     public abstract bool remove_at (int index);
 
-    public abstract G[] to_array ();
+    public abstract T[] to_array ();
 
-    public virtual void add_from_array (G[] data_array) {
-        foreach (G data in data_array) {
+    public virtual void add_from_array (T[] data_array) {
+        foreach (T data in data_array) {
             add (data);
         }
     }

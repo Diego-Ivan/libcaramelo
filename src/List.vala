@@ -6,12 +6,12 @@
  */
 
 [GenericAccessors]
-public interface Caramelo.List<G> : Collection<G> {
-    public abstract new G @get (int index);
-    public abstract new void @set (int index, G data);
-    public abstract int index_of (G data);
-    public abstract void insert (int index, G data);
-    public abstract List<G> slice (long start, long end);
-    public abstract G first ();
-    public abstract G last ();
+public interface Caramelo.List<T> : Collection<T> {
+    public abstract new T @get (int index);
+    public abstract new void @set (int index, T data);
+    public abstract int index_of (T data);
+    public abstract void insert (int index, T data);
+    public abstract List<T> slice (long start, long end);
+    public abstract T first ();
+    public abstract T last ();
 }

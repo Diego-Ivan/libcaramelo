@@ -15,7 +15,6 @@ public abstract class Caramelo.CollectionTest : Caramelo.TestCase {
         add_test ("[Collection]: Add and Remove", add_and_remove);
         add_test ("[Collection]: Clear", clear);
         add_test ("[Collection]: Remove at", remove_at_test);
-        add_test ("[Collection]: To Array", to_array_test);
         add_test ("[Collection] From Array", from_array_test);
     }
 
@@ -51,37 +50,18 @@ public abstract class Caramelo.CollectionTest : Caramelo.TestCase {
     public void remove_at_test () {
         collection.clear ();
 
-        collection.add ("Flower Boy");
-        collection.add ("Rennaissance");
-        collection.add ("4:44");
-        collection.add ("KicK III");
+        collection.add ("Flower Boy"); // 0
+        collection.add ("Rennaissance"); // 0
+        collection.add ("4:44"); // 1
+        collection.add ("KicK III"); // 2
         collection.add ("Starboy");
         collection.add ("Delusion");
 
         collection.remove_at (0);
         assert_false ("Flower Boy" in collection);
 
-        collection.remove_at (1);
+        collection.remove_at (2);
         assert_false ("KicK III" in collection);
-    }
-
-    public void to_array_test () {
-        collection.clear ();
-
-        string[] array_test = {
-            "Sweet", "Candy", "Gummy", "Bear", "Donuts"
-        };
-
-        foreach (string str in array_test) {
-            collection.add (str);
-        }
-
-        string[] result_array = collection.to_array ();
-        print ("%i : %i : %i\n", array_test.length, collection.size, result_array.length);
-
-        for (int i = 0; i < result_array.length; i++) {
-            print ("%s : %s\n", array_test[i], result_array[i]);
-        }
     }
 
     public void from_array_test () {
@@ -93,5 +73,7 @@ public abstract class Caramelo.CollectionTest : Caramelo.TestCase {
         foreach (string str in array_test) {
             assert_true (str in collection);
         }
+
+        collection.clear ();
     }
 }

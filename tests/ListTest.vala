@@ -14,7 +14,7 @@ public class Caramelo.ListTest : Caramelo.CollectionTest {
         add_test ("[List]: Get", get_test);
         add_test ("[List]: Set", set_test);
         add_test ("[List]: Index Of", index_of_test);
-        add_test("[List]: Iterator", iterator_test);
+        add_test ("[List]: Iterator", iterator_test);
         add_test ("[List]: Foreach", foreach_test);
         add_test ("[List]: Insert", insert_test);
         add_test ("[List]: Slice", slice_test);
@@ -23,13 +23,17 @@ public class Caramelo.ListTest : Caramelo.CollectionTest {
 
     public void get_test () {
         list.clear ();
-        string[] str_array = { "Luna", "Sol", "Tierra", "Marte", "Júpiter" };
+        string[] str_array = {
+            "Car", "Bike", "Train", "Subway", "Taxi"
+        };
 
         foreach (string str in str_array) {
             list.add (str);
         }
 
         for (int i = 0; i < str_array.length; i++) {
+            assert_false (list[i] == null);
+            print ("%s : %s\n", str_array[i], list[i]);
             assert_true (str_array[i] == list[i]);
         }
     }
@@ -152,6 +156,7 @@ public class Caramelo.ListTest : Caramelo.CollectionTest {
 
 public static int main (string[] args) {
     Test.init (ref args);
+    typeof (string).ensure;
     var single_test = new Caramelo.ListTest ("SingleLinkedList", new Caramelo.SingleLinkedList<string> ());
 
     TestSuite.get_root ().add_suite (single_test.test_suite);
