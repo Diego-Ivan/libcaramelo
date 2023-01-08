@@ -8,11 +8,13 @@ conf.set('API_VERSION', API_VERSION)
 sources = files([
   'library.vala',
   'Iterator.vala',
+  'BidirectionalIterator.vala',
   'Closures.vala',
   'Iterable.vala',
   'Collection.vala',
   'List.vala',
   'SingleLinkedList.vala',
+  'LinkedList.vala',
 ])
 
 libcaramelo = library('libcaramelo-' + API_VERSION,
