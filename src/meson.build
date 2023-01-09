@@ -22,6 +22,7 @@ sources = files([
   'Set.vala',
   'Queue.vala',
   'LinkedQueue.vala',
+  'ArrayQueue.vala',
 ])
 
 libcaramelo = library('libcaramelo-' + API_VERSION,
