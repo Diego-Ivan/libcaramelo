@@ -20,6 +20,8 @@ sources = files([
   'HashMap.vala',
   'HashSet.vala',
   'Set.vala',
+  'Queue.vala',
+  'LinkedQueue.vala',
 ])
 
 libcaramelo = library('libcaramelo-' + API_VERSION,
