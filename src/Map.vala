@@ -28,6 +28,6 @@ public interface Caramelo.Map<K,V> : Object, Iterable<MapEntry<K,V>> {
 }
 
 public abstract class Caramelo.MapEntry<K,V> : Object {
-    public virtual K key { get; }
+    public virtual K key { get; protected set; }
     public virtual V @value { get; set; }
 }

@@ -18,6 +18,8 @@ sources = files([
   'Map.vala',
   'MapIterator.vala',
   'HashMap.vala',
+  'HashSet.vala',
+  'Set.vala',
 ])
 
 libcaramelo = library('libcaramelo-' + API_VERSION,
