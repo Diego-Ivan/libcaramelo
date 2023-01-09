@@ -11,6 +11,7 @@ public interface Caramelo.List<T> : Collection<T> {
     public abstract new void @set (int index, T data);
     public abstract int index_of (T data);
     public abstract void insert (int index, T data);
+    public abstract bool remove_at (int index);
     public abstract List<T> slice (long start, long end);
     public abstract T first ();
     public abstract T last ();

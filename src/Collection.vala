@@ -14,7 +14,6 @@ public interface Caramelo.Collection<T> : Iterable<T> {
     public abstract bool contains (T data);
     public abstract void clear ();
     public abstract bool remove (T data);
-    public abstract bool remove_at (int index);
 
     public abstract T[] to_array ();
 
