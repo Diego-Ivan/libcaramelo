@@ -11,10 +11,10 @@ public sealed class Caramelo.HashMap<K,V> : Object, Caramelo.Iterable<MapEntry<K
     private EqualFuncClosure<K> key_equal_closure = new EqualFuncClosure<K> ();
     private EqualFuncClosure<V> value_equal_closure = new EqualFuncClosure<V> ();
 
-    private const uint MIN_SIZE = 11;
+    private const uint MIN_SIZE = 16;
     private const uint MAX_SIZE = 200000;
 
-    private Node<K,V> [] node_array;
+    private HashMapEntry<K,V> [] entry_array;
     private int n_nodes = 0;
 
     public HashMap (owned HashFunc<K>? key_hash_func = null,
@@ -36,174 +36,140 @@ public sealed class Caramelo.HashMap<K,V> : Object, Caramelo.Iterable<MapEntry<K
     }
 
     construct {
-        node_array = new Node<K,V> [MIN_SIZE];
+        entry_array = new HashMapEntry<K,V> [MIN_SIZE];
     }
 
     public new void @set (K key, V @value) {
-        unowned Node<K,V>? existing_node = lookup_node (key);
-        if (existing_node != null) {
-            existing_node.value = value;
-        } else {
-            uint hash_value = key_hash_closure.hash_func (key);
-            var new_node = new Node<K,V> (key, @value, hash_value);
+        var new_entry = new HashMapEntry<K,V> (key, value);
+        uint hash_key = key_hash_closure.hash_func (key) % entry_array.length;
 
-            node_array[hash_value % node_array.length] = (owned) new_node;
+        unowned HashMapEntry<K,V>? existing_entry = entry_array[hash_key];
+        if (existing_entry == null) {
+            entry_array[hash_key] = new_entry;
             n_nodes++;
-
-            resize_if_needed ();
+            return;
         }
-    }
 
-    public bool unset (K key, out V? @value = null) {
-        unowned Node<K,V> node = lookup_node (key);
-        if (node != null) {
-            value = (owned) node.value;
-            node_array[node.hash_key % node_array.length] = null;
-
-            n_nodes--;
-            return true;
+        // Key found, so we reassign
+        for (; existing_entry != null; existing_entry = existing_entry.next) {
+            if (key_equal_closure.equal_func (existing_entry.key, key)) {
+                existing_entry.value = value;
+                return;
+            }
         }
-        value = null;
-        return false;
+
+        // Collision :(
+        existing_entry.add (new_entry);
+        n_nodes++;
+        resize_if_needed ();
     }
 
     public new V @get (K key) {
-        unowned Node<K,V>? existing_node = lookup_node (key);
-        if (existing_node != null) {
-            return existing_node.value;
+        uint hash_key = key_hash_closure.hash_func (key) % entry_array.length;
+        unowned HashMapEntry<K,V>? entry = entry_array[hash_key];
+
+        for (; entry != null; entry = entry.next) {
+            if (key_equal_closure.equal_func (entry.key, key)) {
+                return entry.value;
+            }
         }
         return null;
     }
 
     public bool contains (K key) {
-        return lookup_node (key) != null;
-    }
+        uint hash_key = key_hash_closure.hash_func (key) % entry_array.length;
+        unowned HashMapEntry<K,V>? entry = entry_array[hash_key];
 
-    public bool has_pair (K key, V value) {
-        unowned Node<K,V>? existing_node = lookup_node (key);
-        if (existing_node != null) {
-            return value_equal_closure.equal_func (existing_node.value, value);
+        for (; entry != null; entry = entry.next) {
+            if (key_equal_closure.equal_func (entry.key, key)) {
+                return true;
+            }
         }
         return false;
     }
 
-    public MapIterator<K,V> map_iterator () {
-        return new HashMapIterator<K,V> (node_array[0]);
+    public bool unset (K key, out V? @value = null) {
+        uint hash_key = key_hash_closure.hash_func (key) % entry_array.length;
+        unowned HashMapEntry<K,V>? entry = entry_array[hash_key];
+        if (entry == null) {
+            value = null;
+            return false;
+        }
+
+        entry_array[hash_key] = entry.next;
+        n_nodes--;
+        resize_if_needed ();
+        return true;
     }
 
-    public Iterator<MapEntry<K,V>> iterator () {
-        return new HashMapIterator<K,V> (node_array[0]);
+    public bool has_pair (K key, V @value) {
+        uint hash_key = key_hash_closure.hash_func (key) % entry_array.length;
+        unowned HashMapEntry<K,V>? entry = entry_array[hash_key];
+        for (; entry != null; entry = entry.next) {
+            if (key_equal_closure.equal_func (entry.key, key)
+                && value_equal_closure.equal_func (entry.value, value))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private inline void resize_if_needed () {
-        int array_size = node_array.length;
-        if ((array_size >= 3 * n_nodes && array_size >= MIN_SIZE) ||
-            (3 * array_size <= n_nodes && array_size < MAX_SIZE))
-        {
-            uint new_size = SpacedPrimes.closest (n_nodes);
-            new_size.clamp (MIN_SIZE, MAX_SIZE);
+        if (n_nodes >= entry_array.length * 0.75) {
+            grow ();
+            return;
+        }
 
-            Node<K,V>[] new_array = new Node<K,V>[new_size];
-
-            for (int i = 0; i < array_size; i++) {
-                Node<K,V>? current;
-                Node<K,V>? next = null;
-
-                for (current = (owned) node_array[i]; current != null; current = (owned) next) {
-                    next = (owned) current.next;
-                    uint hash_value = current.hash_key % new_size;
-                    current.next = (owned) new_array[hash_value];
-                    new_array[hash_value] = (owned) current;
-                }
-            }
-
-            node_array = new_array;
+        if (n_nodes <= entry_array.length * 0.3) {
+            shrink ();
         }
     }
 
-    private unowned Node<K,V>? lookup_node (K key) {
-        uint hash_value = key_hash_closure.hash_func (key);
-        unowned Node<K,V> node = node_array[hash_value % node_array.length];
+    private inline void grow () {
+        HashMapEntry<K,V>[] old_array = (owned) entry_array;
+        entry_array = new HashMapEntry<K,V>[old_array.length * 2];
 
-        while (node != null && hash_value != node.hash_key || !key_equal_closure.equal_func (node.key, key)) {
-            node = node.next;
+        foreach (var entry in old_array) {
+            while (entry != null) {
+                @set (entry.key, entry.value);
+                entry = entry.next;
+            }
         }
-
-        return node;
     }
 
-    private class HashMapIterator<K,V> : Object, Caramelo.Iterator<MapEntry<K,V>>, Caramelo.MapIterator<K,V> {
-        public MapEntry<K,V>? map_entry = null;
-        public unowned Node<K,V>? current_node = null;
+    private inline void shrink () {
+        HashMapEntry<K,V>[] old_array = (owned) entry_array;
+        entry_array = new HashMapEntry<K,V>[(uint) (old_array.length * 0.75)];
 
-        public K key {
-            get {
-                return map_entry.key;
+        foreach (var entry in old_array) {
+            while (entry != null) {
+                @set (entry.key, entry.value);
+                entry = entry.next;
             }
-        }
-
-        public V @value {
-            get {
-                return map_entry.value;
-            }
-            set {
-                map_entry.value = value;
-            }
-        }
-
-        public HashMapIterator (Node<K,V> node) {
-            current_node = node;
-        }
-
-
-        public new MapEntry<K,V> @get () {
-            return map_entry;
-        }
-
-        public bool has_next () {
-            return current_node != null || current_node.next != null;
-        }
-
-        public bool next () {
-            if (!has_next ()) {
-                return false;
-            }
-            map_entry = new HashMapEntry<K,V> (current_node);
-            current_node = current_node.next;
-            return true;
         }
     }
 
     private class HashMapEntry<K,V> : MapEntry<K,V> {
-        public unowned Node<K,V> node { get; construct; }
-        public override K key {
-            get {
-                return node.key;
-            }
-        }
-        public override V @value {
-            get {
-                return node.value;
-            }
-            set {
-                node.value = value;
-            }
-        }
-        public HashMapEntry (Node<K,V> node) {
-            Object (node: node);
-        }
-    }
+        public override K key { get; protected set; }
+        public override V @value { get; set; }
+        public HashMapEntry<K,V>? next = null;
 
-    private class Node<K,V> {
-        public K key;
-        public V @value;
-        public uint hash_key;
-        public Node<K,V>? next;
-
-        public Node (K key, V @value, uint hash_key) {
+        public HashMapEntry (K key, V @value) {
             this.key = key;
             this.value = value;
-            this.hash_key = hash_key;
+        }
+
+        public void add (HashMapEntry<K,V> new_entry) {
+            if (next == null) {
+                next = new_entry;
+                return;
+            }
+            next.add (new_entry);
+        }
+
+        ~HashMapEntry () {
+            debug ("Freeing Entry");
         }
     }
 }
